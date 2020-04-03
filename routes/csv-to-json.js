@@ -46,6 +46,11 @@ Router.get('/', async (req, res) => {
 // making a basic route to apply filters to the url and response
 Router.get('/test/apply_filter', async (req, res) => {
   let filteredCars = await carOwnersModel.findAll({ where: req.query })
+  if (filteredCars.length < 1)
+    return res.status(400).json({
+      error: true,
+      filteredCars
+    })
   res.json(filteredCars)
 })
 
