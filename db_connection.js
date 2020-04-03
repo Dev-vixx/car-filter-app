@@ -1,9 +1,9 @@
 const { Sequelize } = require('sequelize')
 
 const sequelize = new Sequelize(
-  'test' /* db name */,
-  'vicmie' /* db username*/,
-  'vicmie' /*db user password */,
+  process.env.db /* db name */,
+  process.env.USER /* db username*/,
+  process.env.PWD /*db user password */,
   {
     dialect: 'mysql'
   }
