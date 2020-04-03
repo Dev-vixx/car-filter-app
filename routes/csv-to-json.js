@@ -1,12 +1,13 @@
 const csv = require('csvtojson')
 const path = require('path')
 const Router = require('express').Router()
-const fs = require('fs')
+const { Op } = require('sequelize')
 // db model
 const carOwnersModel = require('../db_schema/car_owner')
 // csv path
 const pathToCsv = path.join(__dirname + '/car_ownsers_data.csv')
 
+//
 Router.get('/', async (req, res) => {
   const insertCsvToDb = () => {
     // converting from csv to json
@@ -40,6 +41,54 @@ Router.get('/', async (req, res) => {
       error
     })
   }
+})
+
+// making a basic route to apply filters to the url and response
+Router.get('/test/apply_filter', async (req, res) => {
+  let filteredCars = await carOwnersModel.findAll({ where: req.query })
+  res.json(filteredCars)
+})
+
+// i really didn't want split it into files
+Router.post('/test/apply_filter', async (req, res) => {
+  let { country, car_color, gender, start_year = 1950, end_year } = req.body
+  let filteredCarCountries = []
+  let filteredCarColors = []
+  let filteredCarGender = []
+  let filteredCarYears = []
+  if (country) {
+    filteredCarCountries = await carOwnersModel.findAll({
+      where: { country }
+    })
+  }
+  if (car_color) {
+    let filteredCarColors = await carOwnersModel.findAll({
+      where: { car_color }
+    })
+  }
+  if (gender) {
+    let filteredCarGender = await carOwnersModel.findAll({ where: { gender } })
+  }
+  if (start_year) {
+    let filteredCarYears = await carOwnersModel.findAll({
+      where: {
+        car_model_year: {
+          [Op.between]: [+start_year, +end_year]
+        }
+      }
+    })
+  }
+  // spreading the results into a duplicate array
+  let allresultDup = [
+    ...filteredCarColors,
+    ...filteredCarCountries,
+    ...filteredCarGender,
+    ...filteredCarYears
+  ]
+  // making them unique
+  let result = new Set()
+  result.add(allresultDup)
+  res.json({ result: [...result], ok: true })
 })
 
 module.exports = Router
